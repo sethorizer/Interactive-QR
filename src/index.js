@@ -296,7 +296,7 @@ class QrSettings extends React.Component {
 		// build version chooser
 		var opts = [];
 		for (let i = 1; i <= 40; i++) {
-			opts.push(<option value={i}>{i}</option>);
+			opts.push(<option key={i} value={i}>{i}</option>);
 		}
 
 		// calculate raw storage capacity
@@ -304,7 +304,7 @@ class QrSettings extends React.Component {
 
 		var alignment_patterns = Math.floor(version / 7);
 		var overlaps = 0;
-		if (alignment_patterns == 0) {
+		if (alignment_patterns === 0) {
 			if (version > 1) {
 				alignment_patterns = 1;
 			}
@@ -324,7 +324,7 @@ class QrSettings extends React.Component {
 		const codeblocks = error_enc[(version-1)*4 + {'L':0, 'M':1, 'Q':2, 'H':3}[this.props.error]];
 		var data_codewords = 0;
 		for (let i = 0; i < codeblocks.length; i += 3) {
-			const [rep, total, data] = codeblocks.slice(i, i+3);
+			const [rep, , data] = codeblocks.slice(i, i+3);
 			data_codewords += rep * data;
 		}
 
@@ -358,7 +358,7 @@ class QrSettings extends React.Component {
 					<select name="version" value={this.props.version} onChange={this.props.onChange}>
 						{opts}
 					</select>&nbsp;
-					<label>Encoding: </label>
+					<label>Error correction: </label>
 					<select name="error" value={this.props.error} onChange={this.props.onChange}>
 						<option value="L">L</option>
 						<option value="M">M</option>
@@ -399,6 +399,8 @@ class QrView extends React.Component {
 		//alert(dt);
 		//this.setState({png: dt});
 		this.dl_png.href = dt;
+
+		setTimeout(() => this.dl_png.href = 'qrcode.png', 500);
 	}
 
 	updateCanvas() {
@@ -417,7 +419,6 @@ class QrView extends React.Component {
 
 		for (let i = 0; i < modules; i++) {
 			for (let j = 0; j < modules; j++) {
-				let color;
 				if (mvals[j][i] === 0) {
 					ctx.fillStyle = 'white';
 				} else if (mvals[j][i] === 1) {
@@ -437,7 +438,15 @@ class QrView extends React.Component {
 				<div>
 					<canvas ref={(input) => { this.canvas = input; }} width={800} height={800} />
 				</div>
-				<div><a download="qrcode.png" href="#" ref={(input) => { this.dl_png = input; }} onClick={this.handleDownload}>png</a></div>
+				<div>
+					<a className="dl-button"
+						download="qrcode.png" 
+						href="qrcode.png" 
+						ref={(input) => { this.dl_png = input; }} 
+						onClick={this.handleDownload}>
+							download as png
+						</a>
+				</div>
 			</div>
 		);
 	}
@@ -488,7 +497,7 @@ class QrCalculator extends React.Component {
 				for (let j = -4; j < 5; j++) {
 					if (xs+i >= 0 && xs+i < size && ys+j >= 0 && ys+j < size) {
 						let d = Math.max(Math.abs(i), Math.abs(j));
-						if (d <= 1 || d == 3) {
+						if (d <= 1 || d === 3) {
 							ret[ys+j][xs+i] = 1;
 						} else {
 							ret[ys+j][xs+i] = 0;
@@ -511,9 +520,9 @@ class QrCalculator extends React.Component {
 		const positions = alignment_positions[version-1];
 		for (let i = 0; i < positions.length; i++) {
 			for (let j = 0; j < positions.length; j++) {
-				if (i === 0 && j === 0 ||
-						i === 0 && j === positions.length-1 ||
-						i === positions.length-1 && j === 0) {
+				if ((i === 0 && j === 0) ||
+						(i === 0 && j === positions.length-1) ||
+						(i === positions.length-1 && j === 0)) {
 					continue;
 				}
 				for (let di = -2; di < 3; di++) {
@@ -599,7 +608,7 @@ class QrCalculator extends React.Component {
 			new_key += 1;
 			valid = true;
 			for (let i = 0; i < current_data.length; i++) {
-				if (current_data[i].key == new_key) {
+				if (current_data[i].key === new_key) {
 					valid = false;
 					break;
 				}
@@ -626,16 +635,16 @@ class QrCalculator extends React.Component {
 				idx += 1;
 			}
 
-			if (name != 'delete') {
+			if (name !== 'delete') {
 				current_data[idx] = copyDict(current_data[idx]);
 			}
 
-			if (name == 'type') {
+			if (name === 'type') {
 				current_data[idx].type = e.target.value;
-			} else if (name == 'data') {
+			} else if (name === 'data') {
 				current_data[idx].string = e.target.value;
 				current_data[idx].len = e.target.value.length;
-			} else if (name == 'delete') {
+			} else if (name === 'delete') {
 				current_data.splice(idx, 1);
 
 				const current_binary = this.state.binary_list.slice();
@@ -697,7 +706,7 @@ class QrCalculator extends React.Component {
 			const codeblocks = error_enc[(version-1)*4 + {'L':0, 'M':1, 'Q':2, 'H':3}[this.state.qr_error]];
 			var data_codewords = 0;
 			for (let i = 0; i < codeblocks.length; i += 3) {
-				const [rep, total, data] = codeblocks.slice(i, i+3);
+				const [rep, , data] = codeblocks.slice(i, i+3);
 				data_codewords += rep * data;
 			}
 
@@ -718,12 +727,12 @@ class QrCalculator extends React.Component {
 
 			binary += dec2bin(0, minimal_padding);
 			var custom_pad = this.state.custom_padding.substr(0, data_codewords*8 - binary.length);
-			if (custom_pad.length % 8 != 0) {
+			if (custom_pad.length % 8 !== 0) {
 				custom_pad += dec2bin(0, 8 - custom_pad.length % 8);
 			}
 			binary += custom_pad;
 
-			console.log('Binary values: ' + binary + '  (Len: ' + binary.length + ')');
+			//console.log('Binary values: ' + binary + '  (Len: ' + binary.length + ')');
 
 			// calculate data codewords and add spec padding
 			var codewords = [];
@@ -734,7 +743,7 @@ class QrCalculator extends React.Component {
 				codewords.push(spec_pad[(codewords.length - Math.floor((binary.length - custom_pad.length) / 8)) % 2]);
 			}
 
-			console.log('Codewords: ' + codewords + '  (Len: ' + codewords.length + ')');
+			//console.log('Codewords: ' + codewords + '  (Len: ' + codewords.length + ')');
 			
 			// extract error correction block data
 			var block_info = [];
@@ -767,17 +776,17 @@ class QrCalculator extends React.Component {
 				let ecc_poly = datapoly.modulo(rspoly);
 				
 				let errcor_block = ecc_poly.vals;
-				console.log(ecc_poly.vals);
+				//console.log(ecc_poly.vals);
 				if (errcor_block.length < ec_words) {
 					errcor_block.splice(0, 0, Array(ec_words - errcor_block.length).fill(0));
 				}
 				errcor_blocks.push(errcor_block);
-				console.log('RS Block: DW ' + data_words + '  Ew ' + ec_words);
-				console.log(' with' + data_blocks[i] + ' and ' + errcor_blocks[i]);
+				//console.log('RS Block: DW ' + data_words + '  Ew ' + ec_words);
+				//console.log(' with' + data_blocks[i] + ' and ' + errcor_blocks[i]);
 			}
 
-			console.log('Data blocks: ' + data_blocks + '  (Len: ' + data_blocks.length + ')');
-			console.log('Error correction: ' + errcor_blocks + '  (Len: ' + errcor_blocks.length + ')');
+			//console.log('Data blocks: ' + data_blocks + '  (Len: ' + data_blocks.length + ')');
+			//console.log('Error correction: ' + errcor_blocks + '  (Len: ' + errcor_blocks.length + ')');
 
 			var arrToString = (total, current, cidx) => {
 				if (cidx === 0) {
@@ -805,7 +814,7 @@ class QrCalculator extends React.Component {
 				}
 			}
 
-			console.log('Final data: ' + final_data + '  (Len: ' + final_data.length + ')');
+			//console.log('Final data: ' + final_data + '  (Len: ' + final_data.length + ')');
 
 			//this.code_data = final_data;
 			this.setState({code_data: final_data});
@@ -839,7 +848,7 @@ class QrCalculator extends React.Component {
 
 				// next position
 				let fx = (x > 6 ? x-1 : x);
-				if (fx % 2 == 0) {
+				if (fx % 2 === 0) {
 					x += 1;
 					y += dir;
 					if (y < 0 || y >= size) {
@@ -882,6 +891,8 @@ class QrCalculator extends React.Component {
 					return ((i,j) => ((i * j) % 2 + (i * j) % 3) % 2 === 0);
 				case 7:
 					return ((i,j) => ((i * j) % 3 + (i + j) % 2) % 2 === 0);
+				default:
+					return null;
 			}
 		}
 
@@ -924,12 +935,12 @@ class QrCalculator extends React.Component {
 		const value = target.value;
 		const name = target.name;
 
-		if (name == "version") {
+		if (name === "version") {
 			this.setState({
 				qr_version: value,
 				modules: this.newQrSize(value),
 			});
-		} else if (name == "error") {
+		} else if (name === "error") {
 			this.setState((s, p) => {
 				return {
 					qr_error: value,
@@ -951,7 +962,7 @@ class QrCalculator extends React.Component {
 		const codeblocks = error_enc[(+this.state.qr_version-1)*4 + {'L':0, 'M':1, 'Q':2, 'H':3}[this.state.qr_error]];
 		var data_codewords = 0;
 		for (let i = 0; i < codeblocks.length; i += 3) {
-			const [rep, total, data] = codeblocks.slice(i, i+3);
+			const [rep, , data] = codeblocks.slice(i, i+3);
 			data_codewords += rep * data;
 		}
 

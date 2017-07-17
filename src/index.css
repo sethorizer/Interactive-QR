@@ -118,3 +118,16 @@ body {
 	float: right;
 	width: 66%;
 }
+
+a:link.dl-button,
+a:visited.dl-button,
+a:hover.dl-button,
+a:active.dl-button {
+	color: black;
+	background-color:silver;
+	padding: 2px;
+	margin: 4px;
+	text-decoration: none;
+	font-size: 85%;
+}
+
