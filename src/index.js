@@ -699,8 +699,8 @@ class QrCalculator extends React.Component {
 
 			// finalize binary and padding
 			var binary = '';
-			for (let i = 0; i < this.state.binary_list.length; i++) {
-				binary += this.state.binary_list[i].string;
+			for (let i = 0; i < current_binary.length; i++) {
+				binary += current_binary[i].string;
 			}
 
 			const codeblocks = error_enc[(version-1)*4 + {'L':0, 'M':1, 'Q':2, 'H':3}[this.state.qr_error]];
